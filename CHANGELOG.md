@@ -2,6 +2,23 @@
 
 
 
+## v0.2.0 (2024-05-26)
+
+### Documentation
+
+* docs(README): add install instructions and basic usage example ([`6572cd5`](https://github.com/Rizhiy/class-cache/commit/6572cd5476e718b4a6c04937006560a7a374b185))
+
+### Feature
+
+* feat(core): implement CacheWithDefault properly ([`b5523d1`](https://github.com/Rizhiy/class-cache/commit/b5523d1bae9e7cbed62276caad1d4bb7e62e4f0c))
+
+### Test
+
+* test(github): fix requests version ([`5052e95`](https://github.com/Rizhiy/class-cache/commit/5052e957d3dab986553f0a3eccad6e6128c647b2))
+
+* test(github): fix coverage module selection ([`8dee97d`](https://github.com/Rizhiy/class-cache/commit/8dee97d67cc66e902e0b9ca285f30649928d3605))
+
+
 ## v0.1.0 (2024-05-26)
 
 ### Chore
