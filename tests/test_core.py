@@ -1,15 +1,18 @@
-from class_cache import Cache
+from class_cache import Cache, CacheWithDefault
 
 TEST_KEY = "class_cache.tests.core.key"
 TEST_VALUE = "class_cache.tests.core.value"
 
 
-class CacheWithAttr(Cache):
-    NON_HASH_ATTRIBUTES = frozenset({*Cache.NON_HASH_ATTRIBUTES, "_name"})
+class CacheWithAttr(CacheWithDefault[str, str]):
+    NON_HASH_ATTRIBUTES = frozenset({*CacheWithDefault.NON_HASH_ATTRIBUTES, "_name"})
 
     def __init__(self, name: str, *args, **kwargs):
         self._name = name
         super().__init__(*args, **kwargs)
+
+    def _get_data(self, key: str) -> str:
+        return self._name + key
 
 
 # TODO: Remake this into a test-suite to test different backends, not just default one
@@ -26,14 +29,17 @@ def test_basic_cache():
 def test_cache_separate():
     base = Cache()
     base[TEST_KEY] = "base"
+    base.write()
 
-    first = CacheWithAttr("first")
+    first = Cache("first")
     assert first.get(TEST_KEY) != "base"
     first[TEST_KEY] = "first"
+    first.write()
 
-    second = CacheWithAttr("second")
+    second = Cache("second")
     assert second.get(TEST_KEY) != "first"
     second[TEST_KEY] = "second"
+    second.write()
 
     assert base[TEST_KEY] == "base"
     assert first[TEST_KEY] == "first"
@@ -53,3 +59,12 @@ def test_del_item():
 
     third = Cache()
     assert TEST_KEY not in third
+
+
+def test_attribute_cache():
+    first = CacheWithAttr("first")
+    second = CacheWithAttr("second")
+    first.clear()
+    second.clear()
+    assert first["foo"] == "firstfoo"
+    assert second["foo"] == "secondfoo"

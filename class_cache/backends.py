@@ -11,11 +11,11 @@ from class_cache.utils import get_user_cache_dir
 
 
 class BaseBackend(ABC, MutableMapping[KeyType, ValueType]):
-    def __init__(self, id_: str | int) -> None:
+    def __init__(self, id_: str | int = None) -> None:
         self._id = id_
 
     @property
-    def id(self) -> str | int:
+    def id(self) -> str | int | None:
         return self._id
 
     # Override these methods to allow getting results in a more optimal fashion
