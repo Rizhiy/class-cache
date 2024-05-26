@@ -5,7 +5,6 @@ from typing import Iterable, Iterator, MutableMapping
 
 from marisa_trie import Trie
 from replete.consistent_hash import consistent_hash
-from replete.utils import weak_lru_cache
 
 from class_cache.types import KeyType, ValueType
 from class_cache.utils import get_user_cache_dir

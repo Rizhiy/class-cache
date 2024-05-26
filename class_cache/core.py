@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, ClassVar, FrozenSet, Iterable, MutableMapping, Type
+from typing import Any, ClassVar, Iterable, MutableMapping
 
 from replete.consistent_hash import consistent_hash
 
@@ -10,7 +10,7 @@ from class_cache.types import KeyType, ValueType
 class Cache(ABC, MutableMapping[KeyType, ValueType]):
     VERSION = 0
     NON_HASH_ATTRIBUTES: ClassVar[frozenset[str]] = frozenset(
-        {"_backend", "_backend_set", "_data", "_to_write", "_to_delete"}
+        {"_backend", "_backend_set", "_data", "_to_write", "_to_delete"},
     )
 
     def __init__(self, backend: type[BaseBackend] = PickleBackend) -> None:
