@@ -69,3 +69,21 @@ pip install class-cache
   cache = MyCache("first")
   assert cache["foo"] == "first_foo"
   ```
+
+## Development
+
+- Install dev dependencies: `pip install -e ".[dev]"`
+- For linting and basic fixes [ruff](https://docs.astral.sh/ruff/) is used: `ruff check . --fix`
+- This repository follows strict formatting style which will be checked by the CI.
+  - To format the code, use the [black](https://black.readthedocs.io) format: `black .`
+  - To sort the imports, user [isort](https://pycqa.github.io/isort/) utility: `isort .`
+- To test code, use [pytest](https://pytest.org): `pytest .`
+- This repository follows semantic-release, which means all commit messages have to follow a [style](https://python-semantic-release.readthedocs.io/en/latest/commit-parsing.html).
+  You can use tools like [commitizen](https://github.com/commitizen-tools/commitizen) to write your commits.
+- You can also use [pre-commit](https://pre-commit.com/) to help verify that all changes are valid.
+  Multiple hooks are used, so use the following commands to install:
+
+  ```bash
+  pre-commit install
+  pre-commit install --hook-type commit-msg
+  ```
