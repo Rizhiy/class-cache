@@ -2,6 +2,17 @@
 
 
 
+## v0.4.0 (2024-05-27)
+
+### Feature
+
+* feat(backend): add SQLiteBackend ([`f5640ce`](https://github.com/Rizhiy/class-cache/commit/f5640cec799a81e15eb65ef53950f59f6d5decc0))
+
+### Test
+
+* test(backend): add test for block splitting ([`7b6aa1d`](https://github.com/Rizhiy/class-cache/commit/7b6aa1dd127f5ab9f6ef9623f240e054aa83f366))
+
+
 ## v0.3.0 (2024-05-27)
 
 ### Chore
