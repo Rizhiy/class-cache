@@ -47,11 +47,11 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
     BLOCK_SUFFIX = ".block.pkl"
     META_TYPE = dict[str, Any]
 
-    def __init__(self, id_: str | int, target_block_size=1024 * 1024) -> None:
+    def __init__(self, id_: str | int, max_block_size=1024 * 1024) -> None:
         super().__init__(id_)
         self._dir = self.ROOT_DIR / str(self._id)
         self._dir.mkdir(exist_ok=True, parents=True)
-        self._target_block_size = target_block_size
+        self._max_block_size = max_block_size
         self._meta_path = self._dir / "meta.json"
         self._lock = InterProcessReaderWriterLock(self._dir / "lock.file")
         self._check_meta()
@@ -146,7 +146,7 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
             self._write_block(block_id, block)
             self._update_length(change)
 
-        if self.get_path_for_block_id(block_id).stat().st_size > self._target_block_size:
+        if self.get_path_for_block_id(block_id).stat().st_size > self._max_block_size:
             self._split_block(block_id)
 
     def _split_block(self, block_id: str) -> None:

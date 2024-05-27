@@ -1,3 +1,5 @@
+import random
+
 from class_cache.backends import PickleBackend
 
 TEST_ID = "class_cache.tests.backends.id"
@@ -27,3 +29,12 @@ def test_write_read():
     read_backend = PickleBackend(TEST_ID)
     assert TEST_KEY in read_backend
     assert read_backend[TEST_KEY] == TEST_VALUE
+
+
+def test_max_block_size():
+    size = 256
+    backend = PickleBackend(TEST_ID, 1024)
+    backend.clear()
+    for i in range(size):
+        backend[i] = random.sample(list(range(size)), size)
+    assert len(list(backend.get_all_block_ids())) > 100
