@@ -2,6 +2,17 @@
 
 
 
+## v0.3.0 (2024-05-27)
+
+### Chore
+
+* chore(pyproject): add benchmark to exclude ([`26d4219`](https://github.com/Rizhiy/class-cache/commit/26d421977a14d7e0519b86284a1d334064c24b27))
+
+### Feature
+
+* feat(backend): add block splitting to PickleBackend ([`a8fcb94`](https://github.com/Rizhiy/class-cache/commit/a8fcb94d28b8eb5c6bf8264e5d263b9b6a756e89))
+
+
 ## v0.2.1 (2024-05-27)
 
 ### Chore
