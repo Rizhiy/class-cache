@@ -188,7 +188,7 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
 
     def __init__(self, id_: ID_TYPE = None) -> None:
         super().__init__(id_)
-        self._db_path = self.ROOT_DIR / str(self.id)
+        self._db_path = self.ROOT_DIR / f"{self.id}.db"
         self._con = sqlite3.connect(self._db_path)
         self._cursor = self._con.cursor()
         self._check_table()
