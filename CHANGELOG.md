@@ -2,6 +2,13 @@
 
 
 
+## v0.4.1 (2024-05-27)
+
+### Fix
+
+* fix(backend): add proper extension for sqlite db files ([`f2063c6`](https://github.com/Rizhiy/class-cache/commit/f2063c6b69c00925b63143914d1efabc334352d5))
+
+
 ## v0.4.0 (2024-05-27)
 
 ### Feature
