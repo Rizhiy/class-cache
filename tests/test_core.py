@@ -1,4 +1,3 @@
-
 from class_cache import Cache, CacheWithDefault
 
 TEST_KEY = "class_cache.tests.core.key"

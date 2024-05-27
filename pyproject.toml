@@ -16,7 +16,7 @@ Home = "https://github.com/Rizhiy/class-cache"
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "replete[testing]"]
-dev = ["black", "class-cache[test]", "ruff"]
+dev = ["black", "class-cache[test]", "pre-commit", "ruff"]
 
 [tool.flit.sdist]
 include = ["README.md"]
