@@ -3,13 +3,12 @@ import math
 import random
 import string
 from time import monotonic
-from typing import cast
 
 import numpy as np
 from replete.logging import setup_logging
 
 from class_cache import Cache
-from class_cache.backends import PickleBackend
+from class_cache.backends import BaseBackend, PickleBackend, SQLiteBackend
 
 LOGGER = logging.getLogger("class_cache.benchmark.main")
 SIZE = 512
@@ -36,8 +35,8 @@ def convert_size(size_bytes):
     return f"{s} {size_name[i]}"
 
 
-def main():
-    setup_logging(print_level=logging.INFO)
+def evaluate(backend_type: type[BaseBackend] = PickleBackend):
+    LOGGER.info(f"Evaluating {backend_type.__name__} backend")
     arrays = {f"arr_{idx}": NP_RNG.standard_normal((SIZE, 32)) for idx in range(SIZE)}
     strings = {f"str_{idx}": get_random_string(SIZE) for idx in range(SIZE)}
     objects = {f"obj_{idx}": MyObj(str(idx) * SIZE, idx) for idx in range(SIZE)}
@@ -45,7 +44,7 @@ def main():
     data = arrays | strings | objects
     LOGGER.info(f"Got {len(data)} elements")
 
-    cache = Cache()
+    cache = Cache(backend_type=backend_type)
     cache.clear()
     start_write = monotonic()
     cache.update(data)
@@ -54,19 +53,30 @@ def main():
     LOGGER.info(f"Write took {end_write - start_write:3f} seconds")
 
     del cache
-    read_cache = Cache()
+    read_cache = Cache(backend_type=backend_type)
     start_read = monotonic()
     for key in read_cache:
         read_cache[key]
     end_read = monotonic()
     LOGGER.info(f"Read took {end_read - start_read:3f} seconds")
 
-    total_size = 0
-    backend = cast(PickleBackend, read_cache.backend)
-    for block_id in backend.get_all_block_ids():
-        total_size += backend.get_path_for_block_id(block_id).stat().st_size
+    backend = read_cache.backend
+    match backend:
+        case PickleBackend():
+            total_size = 0
+            for block_id in backend.get_all_block_ids():
+                total_size += backend.get_path_for_block_id(block_id).stat().st_size
+            LOGGER.info(f"{len(list(backend.get_all_block_ids()))} total blocks")
+        case SQLiteBackend():
+            total_size = backend.db_path.stat().st_size
+
     LOGGER.info(f"Size on disk: {convert_size(total_size)}")
-    LOGGER.info(f"{len(list(backend.get_all_block_ids()))} total blocks")
+
+
+def main():
+    setup_logging(print_level=logging.INFO)
+    for backend_type in {PickleBackend, SQLiteBackend}:
+        evaluate(backend_type)
 
 
 if __name__ == "__main__":

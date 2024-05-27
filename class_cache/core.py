@@ -10,8 +10,8 @@ DEFAULT_BACKEND_TYPE = PickleBackend
 
 
 class Cache(ABC, MutableMapping[KeyType, ValueType]):
-    def __init__(self, id_: str | int | None = None, backend: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
-        self._backend = backend(id_)
+    def __init__(self, id_: str | int | None = None, backend_type: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
+        self._backend = backend_type(id_)
         self._data: dict[KeyType, ValueType] = {}
         self._to_write = set()
         self._to_delete = set()

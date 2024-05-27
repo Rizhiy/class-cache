@@ -1,9 +1,12 @@
+# ruff: noqa: S608
+import codecs
 import json
 import pickle  # noqa: S403
+import sqlite3
 from abc import ABC
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterable, Iterator, MutableMapping
+from typing import Any, Iterable, Iterator, MutableMapping, TypeAlias, cast
 
 from fasteners import InterProcessReaderWriterLock
 from marisa_trie import Trie
@@ -12,13 +15,15 @@ from replete.consistent_hash import consistent_hash
 from class_cache.types import KeyType, ValueType
 from class_cache.utils import get_class_cache_dir
 
+ID_TYPE: TypeAlias = str | int | None
+
 
 class BaseBackend(ABC, MutableMapping[KeyType, ValueType]):
-    def __init__(self, id_: str | int | None = None) -> None:
+    def __init__(self, id_: ID_TYPE = None) -> None:
         self._id = id_
 
     @property
-    def id(self) -> str | int | None:
+    def id(self) -> ID_TYPE:
         return self._id
 
     # Override these methods to allow getting results in a more optimal fashion
@@ -47,9 +52,9 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
     BLOCK_SUFFIX = ".block.pkl"
     META_TYPE = dict[str, Any]
 
-    def __init__(self, id_: str | int, max_block_size=1024 * 1024) -> None:
+    def __init__(self, id_: ID_TYPE = None, max_block_size=1024 * 1024) -> None:
         super().__init__(id_)
-        self._dir = self.ROOT_DIR / str(self._id)
+        self._dir = self.ROOT_DIR / str(self.id)
         self._dir.mkdir(exist_ok=True, parents=True)
         self._max_block_size = max_block_size
         self._meta_path = self._dir / "meta.json"
@@ -174,3 +179,75 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
                 self.get_path_for_block_id(block_id).unlink()
             self._meta_path.unlink()
             self._write_clean_meta()
+
+
+class SQLiteBackend(BaseBackend[KeyType, ValueType]):
+    ROOT_DIR = get_class_cache_dir() / "SQLiteBackend"
+    ROOT_DIR.mkdir(parents=True, exist_ok=True)
+    DATA_TABLE_NAME = "data"
+
+    def __init__(self, id_: ID_TYPE = None) -> None:
+        super().__init__(id_)
+        self._db_path = self.ROOT_DIR / str(self.id)
+        self._con = sqlite3.connect(self._db_path)
+        self._cursor = self._con.cursor()
+        self._check_table()
+
+    @property
+    def db_path(self) -> Path:
+        return self._db_path
+
+    def _check_table(self):
+        tables = self._cursor.execute("SELECT name FROM sqlite_master LIMIT 1").fetchone()
+        if tables is None:
+            self._cursor.execute(f"CREATE TABLE {self.DATA_TABLE_NAME}(key TEXT, value TEXT)")
+            self._cursor.execute(f"CREATE UNIQUE INDEX key_index ON {self.DATA_TABLE_NAME}(key)")
+
+    # TODO: Can probably cache these
+    def _encode(self, obj: KeyType | ValueType) -> str:
+        return codecs.encode(pickle.dumps(obj), "base64").decode()
+
+    def _decode(self, stored: str) -> KeyType | ValueType:
+        return pickle.loads(codecs.decode(stored.encode(), "base64"))  # noqa: S301
+
+    def __contains__(self, key: KeyType) -> bool:
+        key_str = self._encode(key)
+        sql = f"SELECT EXISTS(SELECT 1 FROM {self.DATA_TABLE_NAME} WHERE key=? LIMIT 1)"
+        value = self._cursor.execute(sql, (key_str,)).fetchone()[0]
+        return value != 0
+
+    def __len__(self) -> int:
+        return self._cursor.execute(f"SELECT COUNT(key) FROM {self.DATA_TABLE_NAME}").fetchone()[0]
+
+    def __iter__(self) -> Iterator[KeyType]:
+        for key_str in self._cursor.execute(f"SELECT key FROM {self.DATA_TABLE_NAME}").fetchall():
+            yield cast(KeyType, self._decode(key_str[0]))
+
+    def __getitem__(self, key: KeyType) -> ValueType:
+        key_str = self._encode(key)
+        sql = f"SELECT value FROM {self.DATA_TABLE_NAME} WHERE key=? LIMIT 1"
+        res = self._cursor.execute(sql, (key_str,)).fetchone()
+        if res is None:
+            raise KeyError(key)
+        return cast(ValueType, self._decode(res[0]))
+
+    def __setitem__(self, key: KeyType, value: ValueType) -> None:
+        key_str = self._encode(key)
+        value_str = self._encode(value)
+        self._cursor.execute(f"INSERT INTO {self.DATA_TABLE_NAME} VALUES (?, ?)", (key_str, value_str))
+        self._con.commit()
+
+    def __delitem__(self, key: KeyType) -> None:
+        key_str = self._encode(key)
+        self._cursor.execute(f"DELETE FROM {self.DATA_TABLE_NAME} WHERE key=?", (key_str,))
+        self._con.commit()
+
+    def clear(self) -> None:
+        self._cursor.execute(f"DROP TABLE IF EXISTS {self.DATA_TABLE_NAME}")
+        self._check_table()
+
+    def __del__(self):
+        self._con.commit()
+        self._con.close()
+
+    # TODO: implement *_many methods
