@@ -49,9 +49,6 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
         self._dir.mkdir(exist_ok=True, parents=True)
         self._target_block_size = target_block_size
 
-    def __hash__(self):
-        return hash(self.id)
-
     def _get_key_hash(self, key: KeyType) -> str:
         return f"{consistent_hash(key):x}"
 

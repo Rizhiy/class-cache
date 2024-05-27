@@ -46,8 +46,14 @@ class Cache(ABC, MutableMapping[KeyType, ValueType]):
     def write(self) -> None:
         """Write values to backend"""
         self._backend.set_many((key, self._data[key]) for key in self._to_write)
-        self._to_write = set()
         self._backend.del_many(self._to_delete)
+        self._to_write = set()
+        self._to_delete = set()
+
+    def clear(self) -> None:
+        self._backend.clear()
+        self._data = {}
+        self._to_write = set()
         self._to_delete = set()
 
 
