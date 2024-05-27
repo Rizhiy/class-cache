@@ -10,11 +10,15 @@ DEFAULT_BACKEND_TYPE = PickleBackend
 
 
 class Cache(ABC, MutableMapping[KeyType, ValueType]):
-    def __init__(self, id_: str | int = None, backend: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
+    def __init__(self, id_: str | int | None = None, backend: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
         self._backend = backend(id_)
         self._data: dict[KeyType, ValueType] = {}
         self._to_write = set()
         self._to_delete = set()
+
+    @property
+    def backend(self) -> BaseBackend:
+        return self._backend
 
     def __contains__(self, key: KeyType) -> bool:
         if key in self._data:
@@ -31,9 +35,11 @@ class Cache(ABC, MutableMapping[KeyType, ValueType]):
         return self._data[key]
 
     def __iter__(self) -> Iterable[KeyType]:
+        self.write()
         return iter(self._backend)
 
     def __len__(self) -> int:
+        self.write()
         return len(self._backend)
 
     def __delitem__(self, key: KeyType) -> None:
@@ -96,5 +102,7 @@ class CacheWithDefault(Cache[KeyType, ValueType]):
             and getattr(self, "_backend_set", None)
             and key not in self.NON_HASH_ATTRIBUTES
         ):
-            raise TypeError(f"Trying to update hash inclusive attribute after hash has been decided: {key}")
+            raise TypeError(
+                f"Trying to update hash inclusive attribute after hash has been decided: {key}",
+            )
         object.__setattr__(self, key, value)

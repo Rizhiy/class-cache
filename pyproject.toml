@@ -9,14 +9,14 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 dynamic = ["description", "version"]
-dependencies = ["Pympler", "marisa-trie", "replete"]
+dependencies = ["Pympler", "fasteners", "marisa-trie", "replete"]
 
 [project.urls]
 Home = "https://github.com/Rizhiy/class-cache"
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "replete[testing]"]
-dev = ["black", "class-cache[test]", "pre-commit", "ruff"]
+dev = ["black", "class-cache[test]", "numpy", "pre-commit", "ruff"]
 
 [tool.flit.sdist]
 include = ["README.md"]

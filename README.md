@@ -57,6 +57,7 @@ pip install class-cache
       NON_HASH_ATTRIBUTES = frozenset({*CacheWithDefault.NON_HASH_ATTRIBUTES, "_misc"})
       def __init__(self, name: str):
           # Attributes which affect default value generation should come before super().__init__()
+          # They will be used to generate a unique id
           self._name = name
           super().__init__()
           # Other attributes should not affect how default value is generated, add them to NON_HASH_ATTRIBUTES

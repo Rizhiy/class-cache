@@ -7,3 +7,7 @@ def get_user_cache_dir() -> Path:
     if cache_home:
         return Path(cache_home)
     return Path(os.environ["HOME"]) / ".cache"
+
+
+def get_class_cache_dir() -> Path:
+    return get_user_cache_dir() / "class_cache"

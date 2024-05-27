@@ -111,3 +111,14 @@ def test_items():
 
     read_cache = get_new_cache(clear=False)
     assert dict(read_cache.items()) == TEST_DICT
+
+
+def test_len():
+    cache = get_new_cache()
+    cache.update(TEST_DICT)
+    assert len(cache) == len(TEST_DICT)
+    cache.write()
+
+    del cache
+    cache = get_new_cache(clear=False)
+    assert len(cache) == len(TEST_DICT)
