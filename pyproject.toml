@@ -20,14 +20,14 @@ dev = ["black", "class-cache[test]", "numpy", "pre-commit", "ruff"]
 
 [tool.flit.sdist]
 include = ["README.md"]
-exclude = [".github", ".gitignore", "tests/*"]
+exclude = [".github", ".gitignore", "benchmark", "tests/*"]
 
 [tool.semantic_release]
 version_variables = ["class_cache/__init__.py:__version__"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--doctest-modules"
+addopts = "--doctest-modules --ignore=benchmark"
 
 [tool.black]
 line-length = 120
