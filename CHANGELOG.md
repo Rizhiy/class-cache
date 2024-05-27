@@ -2,6 +2,21 @@
 
 
 
+## v0.2.1 (2024-05-27)
+
+### Chore
+
+* chore: add pre-commit ([`f7050eb`](https://github.com/Rizhiy/class-cache/commit/f7050eb57345a667a681e6d93233c0c49c389f3b))
+
+### Documentation
+
+* docs(README): add dev instructions ([`878a6a7`](https://github.com/Rizhiy/class-cache/commit/878a6a7441a4cfa4545b3f9fdb659798e0f6392f))
+
+### Fix
+
+* fix(core.py): fix clear() and add more tests ([`7389321`](https://github.com/Rizhiy/class-cache/commit/73893218a52d341b25fda98eea7d97638b70e0f9))
+
+
 ## v0.2.0 (2024-05-26)
 
 ### Documentation
