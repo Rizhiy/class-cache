@@ -315,7 +315,7 @@ class BrotliCompressWrapper(BackendWrapper[KeyType, ValueType]):
         return self._decode(super().__getitem__(key))
 
     def __setitem__(self, key: KeyType, value: ValueType) -> None:
-        self._backend[key] = self._encode(value)
+        super().__setitem__(key, self._encode(value))
 
     def __delitem__(self, key: KeyType) -> None:
         return super().__delitem__(key)
