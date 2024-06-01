@@ -9,7 +9,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 dynamic = ["description", "version"]
-dependencies = ["Pympler", "fasteners", "marisa-trie", "replete"]
+dependencies = ["Pympler", "brotli", "marisa-trie", "replete>=2.3.1"]
 
 [project.urls]
 Home = "https://github.com/Rizhiy/class-cache"
@@ -32,6 +32,9 @@ addopts = "--doctest-modules --ignore=benchmark"
 [tool.black]
 line-length = 120
 # skip-magic-trailing-comma = true
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.yamlfix]
 line_length = 120

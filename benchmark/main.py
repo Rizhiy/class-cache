@@ -2,13 +2,14 @@ import logging
 import math
 import random
 import string
+from functools import partial
 from time import monotonic
 
 import numpy as np
 from replete.logging import setup_logging
 
 from class_cache import Cache
-from class_cache.backends import BaseBackend, PickleBackend, SQLiteBackend
+from class_cache.backends import BaseBackend, BrotliCompressWrapper, PickleBackend, SQLiteBackend
 
 LOGGER = logging.getLogger("class_cache.benchmark.main")
 SIZE = 512
@@ -35,8 +36,8 @@ def convert_size(size_bytes):
     return f"{s} {size_name[i]}"
 
 
-def evaluate(backend_type: type[BaseBackend] = PickleBackend):
-    LOGGER.info(f"Evaluating {backend_type.__name__} backend")
+def evaluate(name: str, backend_type: type[BaseBackend] = PickleBackend):
+    LOGGER.info(f"Evaluating {name} backend")
     arrays = {f"arr_{idx}": NP_RNG.standard_normal((SIZE, 32)) for idx in range(SIZE)}
     strings = {f"str_{idx}": get_random_string(SIZE) for idx in range(SIZE)}
     objects = {f"obj_{idx}": MyObj(str(idx) * SIZE, idx) for idx in range(SIZE)}
@@ -69,14 +70,23 @@ def evaluate(backend_type: type[BaseBackend] = PickleBackend):
             LOGGER.info(f"{len(list(backend.get_all_block_ids()))} total blocks")
         case SQLiteBackend():
             total_size = backend.db_path.stat().st_size
+        case BrotliCompressWrapper():
+            total_size = 0
+            for block_id in backend._backend.get_all_block_ids():  # noqa: SLF001
+                total_size += backend._backend.get_path_for_block_id(block_id).stat().st_size  # noqa: SLF001
+            LOGGER.info(f"{len(list(backend._backend.get_all_block_ids()))} total blocks")  # noqa: SLF001
 
     LOGGER.info(f"Size on disk: {convert_size(total_size)}")
 
 
 def main():
     setup_logging(print_level=logging.INFO)
-    for backend_type in {PickleBackend, SQLiteBackend}:
-        evaluate(backend_type)
+    for name, backend_type in {
+        "pickle": PickleBackend,
+        "sqlite": SQLiteBackend,
+        "brotli_pickle": partial(BrotliCompressWrapper, backend_type=PickleBackend),
+    }.items():
+        evaluate(name, backend_type)
 
 
 if __name__ == "__main__":

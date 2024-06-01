@@ -8,9 +8,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Iterator, MutableMapping, TypeAlias, cast
 
-from fasteners import InterProcessReaderWriterLock
+import brotli
 from marisa_trie import Trie
 from replete.consistent_hash import consistent_hash
+from replete.flock import FileLock
 
 from class_cache.types import KeyType, ValueType
 from class_cache.utils import get_class_cache_dir
@@ -58,14 +59,14 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
         self._dir.mkdir(exist_ok=True, parents=True)
         self._max_block_size = max_block_size
         self._meta_path = self._dir / "meta.json"
-        self._lock = InterProcessReaderWriterLock(self._dir / "lock.file")
+        self._lock = FileLock(self._meta_path)
         self._check_meta()
 
     @property
     def dir(self) -> Path:
         return self._dir
 
-    # Helper methods, don't acquire locks inside them
+    # Helper methods, they don't acquire locks, so should only be used inside methods that do
     def _read_meta(self) -> META_TYPE:
         with self._meta_path.open() as f:
             return json.load(f)
@@ -88,6 +89,8 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
 
         blocks_trie = Trie(self.get_all_block_ids())
         prefixes = blocks_trie.prefixes(key_hash)
+        if prefix_len > len(key_hash):
+            raise ValueError("Got prefix_len that is larger than key_hash len.")
         return key_hash[:prefix_len] if not prefixes else max(prefixes, key=len)
 
     def _get_block(self, block_id: str) -> dict[KeyType, ValueType]:
@@ -110,9 +113,8 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
         return self._get_block(self._get_block_id_for_key(key))
 
     def get_all_block_ids(self) -> Iterable[str]:
-        yield from (path.name.split(".")[0] for path in self._dir.glob(f"*{self.BLOCK_SUFFIX}"))
-
-    # Helper methods end
+        with self._lock.read_lock():
+            yield from (path.name.split(".")[0] for path in self._dir.glob(f"*{self.BLOCK_SUFFIX}"))
 
     def _check_meta(self) -> None:
         with self._lock.read_lock():
@@ -133,10 +135,9 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
 
     def __iter__(self) -> Iterator[KeyType]:
         # TODO: Optimise this
-        # TODO: This should also use a read lock, but it seems to be not working, see:
-        # https://github.com/harlowja/fasteners/issues/115
-        for block_id in self.get_all_block_ids():
-            yield from self._get_block(block_id).keys()
+        with self._lock.read_lock():
+            for block_id in self.get_all_block_ids():
+                yield from self._get_block(block_id).keys()
 
     def __getitem__(self, key: KeyType) -> ValueType:
         with self._lock.read_lock():
@@ -244,6 +245,7 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
 
     def clear(self) -> None:
         self._cursor.execute(f"DROP TABLE IF EXISTS {self.DATA_TABLE_NAME}")
+        self._con.commit()
         self._check_table()
 
     def __del__(self):
@@ -251,3 +253,72 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
         self._con.close()
 
     # TODO: implement *_many methods
+
+
+class BackendWrapper(BaseBackend[KeyType, ValueType]):
+    """
+    :param backend: backend to be wrapped
+    """
+
+    def __init__(self, *args, backend_type: type[BaseBackend], **kwargs) -> None:
+        super().__init__()
+        self._backend = backend_type(*args, **kwargs)
+
+    def __contains__(self, key: KeyType) -> bool:
+        return key in self._backend
+
+    def __len__(self) -> int:
+        return len(self._backend)
+
+    def __iter__(self) -> Iterator[KeyType]:
+        yield from self._backend
+
+    def __getitem__(self, key: KeyType) -> ValueType:
+        return self._backend[key]
+
+    def __setitem__(self, key: KeyType, value: ValueType) -> None:
+        self._backend[key] = value
+
+    def __delitem__(self, key: KeyType) -> None:
+        del self._backend[key]
+
+    def contains_many(self, keys: Iterable[KeyType]) -> Iterator[tuple[KeyType, bool]]:
+        yield from self._backend.contains_many(keys)
+
+    def get_many(self, keys: Iterable[KeyType]) -> Iterator[tuple[KeyType, ValueType]]:
+        yield from self._backend.get_many(keys)
+
+    def set_many(self, items: Iterable[tuple[KeyType, ValueType]]) -> None:
+        self._backend.set_many(items)
+
+    def del_many(self, keys: Iterable[KeyType]) -> None:
+        self._backend.del_many(keys)
+
+    def clear(self) -> None:
+        self._backend.clear()
+
+
+class BrotliCompressWrapper(BackendWrapper[KeyType, ValueType]):
+    def _encode(self, obj: KeyType | ValueType) -> bytes:
+        return brotli.compress(pickle.dumps(obj, pickle.HIGHEST_PROTOCOL))
+
+    def _decode(self, stored: bytes) -> KeyType | ValueType:
+        return pickle.loads(brotli.decompress(stored))  # noqa: S301
+
+    def __contains__(self, key: KeyType) -> bool:
+        return super().__contains__(key)
+
+    def __iter__(self) -> Iterator[KeyType]:
+        yield from super().__iter__()
+
+    def __getitem__(self, key: KeyType) -> ValueType:
+        return self._decode(super().__getitem__(key))
+
+    def __setitem__(self, key: KeyType, value: ValueType) -> None:
+        self._backend[key] = self._encode(value)
+
+    def __delitem__(self, key: KeyType) -> None:
+        return super().__delitem__(key)
+
+    def set_many(self, items: Iterable[tuple[KeyType, ValueType]]) -> None:
+        return super().set_many((key, self._encode(value)) for key, value in items)
