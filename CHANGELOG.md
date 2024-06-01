@@ -2,6 +2,13 @@
 
 
 
+## v0.5.0 (2024-06-01)
+
+### Feature
+
+* feat(backend): add brotli compression wrapper ([`cfff762`](https://github.com/Rizhiy/class-cache/commit/cfff762c7e2131fde3b865a4422d6a616555dd04))
+
+
 ## v0.4.1 (2024-05-27)
 
 ### Fix
