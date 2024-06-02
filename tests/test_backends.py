@@ -3,11 +3,7 @@ from concurrent import futures
 
 import pytest
 
-from class_cache.backends import BaseBackend, BrotliCompressWrapper, PickleBackend, SQLiteBackend
-
-TEST_ID = "class_cache.tests.backends.id"
-TEST_KEY = "class_cache.tests.backends.key"
-TEST_VALUE = "class_cache.tests.backends.value"
+from class_cache.backends import BaseBackend, PickleBackend, SQLiteBackend
 
 MAX_WORKERS = 16
 INCREASE_AMOUNT = 32
@@ -22,27 +18,27 @@ def _increase_cache(backend_type: type[BaseBackend], offset: int):
 
 @pytest.mark.parametrize(("backend_type"), [PickleBackend, SQLiteBackend])
 class TestCore:
-    def test_basic(self, backend_type: type[BaseBackend]):
-        backend = backend_type(TEST_ID)
+    def test_basic(self, test_id, test_key, test_value, backend_type: type[BaseBackend]):
+        backend = backend_type(test_id)
         backend.clear()
-        assert TEST_KEY not in backend
-        backend[TEST_KEY] = TEST_VALUE
-        assert TEST_KEY in backend
-        assert backend[TEST_KEY] == TEST_VALUE
+        assert test_key not in backend
+        backend[test_key] = test_value
+        assert test_key in backend
+        assert backend[test_key] == test_value
         assert len(backend) == 1
-        assert list(backend) == [TEST_KEY]
-        del backend[TEST_KEY]
-        assert TEST_KEY not in backend
+        assert list(backend) == [test_key]
+        del backend[test_key]
+        assert test_key not in backend
 
-    def test_write_read(self, backend_type: type[BaseBackend]):
-        write_backend = backend_type(TEST_ID)
+    def test_write_read(self, test_id, test_key, test_value, backend_type: type[BaseBackend]):
+        write_backend = backend_type(test_id)
         write_backend.clear()
-        assert TEST_KEY not in write_backend
-        write_backend[TEST_KEY] = TEST_VALUE
+        assert test_key not in write_backend
+        write_backend[test_key] = test_value
 
-        read_backend = backend_type(TEST_ID)
-        assert TEST_KEY in read_backend
-        assert read_backend[TEST_KEY] == TEST_VALUE
+        read_backend = backend_type(test_id)
+        assert test_key in read_backend
+        assert read_backend[test_key] == test_value
 
     @pytest.mark.parametrize("executor_cls", [futures.ThreadPoolExecutor, futures.ProcessPoolExecutor])
     def test_parallel(self, backend_type, executor_cls):
@@ -59,22 +55,9 @@ class TestCore:
             assert backend[idx] == str(idx)
 
 
-def test_brotli_wrapper():
-    backend = BrotliCompressWrapper(backend_type=PickleBackend)
-    backend.clear()
-    assert TEST_KEY not in backend
-    backend[TEST_KEY] = TEST_VALUE
-    assert TEST_KEY in backend
-    assert backend[TEST_KEY] == TEST_VALUE
-    assert len(backend) == 1
-    assert list(backend) == [TEST_KEY]
-    del backend[TEST_KEY]
-    assert TEST_KEY not in backend
-
-
-def test_max_block_size():
+def test_max_block_size(test_id):
     size = 256
-    backend = PickleBackend(TEST_ID, 1024)
+    backend = PickleBackend(test_id, 1024)
     backend.clear()
     for i in range(size):
         backend[i] = random.sample(list(range(size)), size)

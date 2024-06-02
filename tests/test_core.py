@@ -1,7 +1,5 @@
 from class_cache import Cache, CacheWithDefault
 
-TEST_KEY = "class_cache.tests.core.key"
-TEST_VALUE = "class_cache.tests.core.value"
 TEST_DICT = {1: "foo", "foo": "bar", (2, 3): [4, 5]}
 
 
@@ -16,7 +14,6 @@ class CacheWithAttr(CacheWithDefault[str, str]):
         return self._name + key
 
 
-# TODO: Change this into a fixture and set id based on request to allow running tests in parallel
 def get_new_cache(id_: str = None, *, clear=True) -> Cache:
     cache = Cache(id_)
     if clear:
@@ -24,50 +21,49 @@ def get_new_cache(id_: str = None, *, clear=True) -> Cache:
     return cache
 
 
-# TODO: Remake this into a test-suite to test different backends, not just default one
-def test_basic_cache():
+def test_basic_cache(test_key, test_value):
     first = get_new_cache()
-    first[TEST_KEY] = TEST_VALUE
+    first[test_key] = test_value
     first.write()
     del first
 
     second = get_new_cache(clear=False)
-    assert TEST_KEY in second
+    assert test_key in second
 
 
-def test_cache_separate():
+def test_cache_separate(test_key):
     base = get_new_cache()
-    base[TEST_KEY] = "base"
+    base[test_key] = "base"
     base.write()
 
     first = get_new_cache("first")
-    assert first.get(TEST_KEY) != "base"
-    first[TEST_KEY] = "first"
+    assert first.get(test_key) != "base"
+    first[test_key] = "first"
     first.write()
 
     second = get_new_cache("second")
-    assert second.get(TEST_KEY) != "first"
-    second[TEST_KEY] = "second"
+    assert second.get(test_key) != "first"
+    second[test_key] = "second"
     second.write()
 
-    assert base[TEST_KEY] == "base"
-    assert first[TEST_KEY] == "first"
-    assert second[TEST_KEY] == "second"
+    assert base[test_key] == "base"
+    assert first[test_key] == "first"
+    assert second[test_key] == "second"
 
 
-def test_del_item():
+def test_del_item(test_key, test_value):
     first = get_new_cache()
-    first[TEST_KEY] = TEST_VALUE
+    first[test_key] = test_value
     first.write()
     del first
 
     second = get_new_cache(clear=False)
-    del second[TEST_KEY]
-    assert TEST_KEY not in second
+    del second[test_key]
+    assert test_key not in second
     second.write()
 
     third = get_new_cache(clear=False)
-    assert TEST_KEY not in third
+    assert test_key not in third
 
 
 def test_attribute_cache():

@@ -2,17 +2,17 @@ import logging
 import math
 import random
 import string
-from functools import partial
 from time import monotonic
 
 import numpy as np
 from replete.logging import setup_logging
 
 from class_cache import Cache
-from class_cache.backends import BaseBackend, BrotliCompressWrapper, PickleBackend, SQLiteBackend
+from class_cache.backends import BaseBackend, PickleBackend, SQLiteBackend
+from class_cache.wrappers import BrotliCompressWrapper
 
 LOGGER = logging.getLogger("class_cache.benchmark.main")
-SIZE = 512
+SIZE = 1024
 NP_RNG = np.random.default_rng()
 
 
@@ -84,7 +84,7 @@ def main():
     for name, backend_type in {
         "pickle": PickleBackend,
         "sqlite": SQLiteBackend,
-        "brotli_pickle": partial(BrotliCompressWrapper, backend_type=PickleBackend),
+        "brotli_pickle": lambda id_: BrotliCompressWrapper(PickleBackend(id_)),
     }.items():
         evaluate(name, backend_type)
 

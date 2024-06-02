@@ -1,17 +1,19 @@
-from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Iterable, MutableMapping
+from abc import abstractmethod
+from typing import Any, ClassVar, Iterable
 
 from replete.consistent_hash import consistent_hash
 
 from class_cache.backends import BaseBackend, PickleBackend
-from class_cache.types import KeyType, ValueType
+from class_cache.types import CacheInterface, KeyType, ValueType
 
 DEFAULT_BACKEND_TYPE = PickleBackend
 
 
-class Cache(ABC, MutableMapping[KeyType, ValueType]):
+class Cache(CacheInterface[KeyType, ValueType]):
     def __init__(self, id_: str | int | None = None, backend_type: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
+        super().__init__(id_)
         self._backend = backend_type(id_)
+        # TODO: Implement max_size logic
         self._data: dict[KeyType, ValueType] = {}
         self._to_write = set()
         self._to_delete = set()
@@ -102,7 +104,5 @@ class CacheWithDefault(Cache[KeyType, ValueType]):
             and getattr(self, "_backend_set", None)
             and key not in self.NON_HASH_ATTRIBUTES
         ):
-            raise TypeError(
-                f"Trying to update hash inclusive attribute after hash has been decided: {key}",
-            )
+            raise TypeError(f"Trying to update hash inclusive attribute after hash has been decided: {key}")
         object.__setattr__(self, key, value)

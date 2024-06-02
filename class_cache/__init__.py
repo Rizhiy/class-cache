@@ -2,5 +2,6 @@
 
 from .backends import BaseBackend
 from .core import Cache, CacheWithDefault
+from .wrappers import BaseWrapper
 
 __version__ = "0.5.0"
