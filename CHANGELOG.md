@@ -2,6 +2,21 @@
 
 
 
+## v0.6.0 (2024-06-02)
+
+### Chore
+
+* chore(black): bring back magical comma skip ([`35606da`](https://github.com/Rizhiy/class-cache/commit/35606daa8a7fbe745047b9a87b49698623674980))
+
+### Feature
+
+* feat(wrappers): make wrappers more general and refactor a lot ([`debe119`](https://github.com/Rizhiy/class-cache/commit/debe1192687605224a861d2d42c13fc1a22204d3))
+
+### Refactor
+
+* refactor(wrapper): change a bit ([`a1a7273`](https://github.com/Rizhiy/class-cache/commit/a1a72739747ed72149f350d223ce52c3c5d216ff))
+
+
 ## v0.5.0 (2024-06-01)
 
 ### Feature
