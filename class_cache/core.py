@@ -65,6 +65,7 @@ class Cache(CacheInterface[KeyType, ValueType]):
         self._to_delete = set()
 
 
+# TODO: refactor this into a wrapper
 class CacheWithDefault(Cache[KeyType, ValueType]):
     VERSION = 0
     NON_HASH_ATTRIBUTES: ClassVar[frozenset[str]] = frozenset(

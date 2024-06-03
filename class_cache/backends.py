@@ -172,7 +172,6 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
         super().__init__(id_)
         self._db_path = self.ROOT_DIR / f"{self.id}.db"
         self._con = sqlite3.connect(self._db_path)
-        self._cursor = self._con.cursor()
         self._check_table()
 
     @property
@@ -180,10 +179,10 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
         return self._db_path
 
     def _check_table(self):
-        tables = self._cursor.execute("SELECT name FROM sqlite_master LIMIT 1").fetchone()
+        tables = self._con.execute("SELECT name FROM sqlite_master LIMIT 1").fetchone()
         if tables is None:
-            self._cursor.execute(f"CREATE TABLE {self.DATA_TABLE_NAME}(key TEXT, value TEXT)")
-            self._cursor.execute(f"CREATE UNIQUE INDEX key_index ON {self.DATA_TABLE_NAME}(key)")
+            self._con.execute(f"CREATE TABLE {self.DATA_TABLE_NAME}(key TEXT, value TEXT)")
+            self._con.execute(f"CREATE UNIQUE INDEX key_index ON {self.DATA_TABLE_NAME}(key)")
 
     # TODO: Add caching for keys
     def _encode(self, obj: KeyType | ValueType) -> str:
@@ -195,20 +194,20 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
     def __contains__(self, key: KeyType) -> bool:
         key_str = self._encode(key)
         sql = f"SELECT EXISTS(SELECT 1 FROM {self.DATA_TABLE_NAME} WHERE key=? LIMIT 1)"
-        value = self._cursor.execute(sql, (key_str,)).fetchone()[0]
+        value = self._con.execute(sql, (key_str,)).fetchone()[0]
         return value != 0
 
     def __len__(self) -> int:
-        return self._cursor.execute(f"SELECT COUNT(key) FROM {self.DATA_TABLE_NAME}").fetchone()[0]
+        return self._con.execute(f"SELECT COUNT(key) FROM {self.DATA_TABLE_NAME}").fetchone()[0]
 
     def __iter__(self) -> Iterator[KeyType]:
-        for key_str in self._cursor.execute(f"SELECT key FROM {self.DATA_TABLE_NAME}").fetchall():
+        for key_str in self._con.execute(f"SELECT key FROM {self.DATA_TABLE_NAME}").fetchall():
             yield cast(KeyType, self._decode(key_str[0]))
 
     def __getitem__(self, key: KeyType) -> ValueType:
         key_str = self._encode(key)
         sql = f"SELECT value FROM {self.DATA_TABLE_NAME} WHERE key=? LIMIT 1"
-        res = self._cursor.execute(sql, (key_str,)).fetchone()
+        res = self._con.execute(sql, (key_str,)).fetchone()
         if res is None:
             raise KeyError(key)
         return cast(ValueType, self._decode(res[0]))
@@ -216,16 +215,15 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
     def __setitem__(self, key: KeyType, value: ValueType) -> None:
         key_str = self._encode(key)
         value_str = self._encode(value)
-        self._cursor.execute(f"INSERT INTO {self.DATA_TABLE_NAME} VALUES (?, ?)", (key_str, value_str))
-        self._con.commit()
+        self._con.execute(f"INSERT INTO {self.DATA_TABLE_NAME} VALUES (?, ?)", (key_str, value_str))
 
     def __delitem__(self, key: KeyType) -> None:
         key_str = self._encode(key)
-        self._cursor.execute(f"DELETE FROM {self.DATA_TABLE_NAME} WHERE key=?", (key_str,))
-        self._con.commit()
+        self._con.execute(f"DELETE FROM {self.DATA_TABLE_NAME} WHERE key=?", (key_str,))
 
     def clear(self) -> None:
-        self._cursor.execute(f"DROP TABLE IF EXISTS {self.DATA_TABLE_NAME}")
+        self._con.execute(f"DROP TABLE IF EXISTS {self.DATA_TABLE_NAME}")
+        self._con.execute("VACUUM")
         self._con.commit()
         self._check_table()
 
