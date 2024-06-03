@@ -216,10 +216,12 @@ class SQLiteBackend(BaseBackend[KeyType, ValueType]):
         key_str = self._encode(key)
         value_str = self._encode(value)
         self._con.execute(f"INSERT INTO {self.DATA_TABLE_NAME} VALUES (?, ?)", (key_str, value_str))
+        self._con.commit()
 
     def __delitem__(self, key: KeyType) -> None:
         key_str = self._encode(key)
         self._con.execute(f"DELETE FROM {self.DATA_TABLE_NAME} WHERE key=?", (key_str,))
+        self._con.commit()
 
     def clear(self) -> None:
         self._con.execute(f"DROP TABLE IF EXISTS {self.DATA_TABLE_NAME}")
