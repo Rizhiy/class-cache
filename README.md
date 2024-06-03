@@ -71,6 +71,21 @@ pip install class-cache
   assert cache["foo"] == "first_foo"
   ```
 
+- Compress data before storing:
+
+  ```python
+  from class_cache.wrappers import BrotliCompressWrapper
+  from class_cache import Cache
+
+  cache = BrotliCompressWrapper(Cache())
+  # Use cache as normal
+  ```
+
+  This wrapper uses [`brotli`](https://github.com/google/brotli) algorithm for compression,
+  which optimises read-time at expense of write-time.
+  This will generally lead to less space being used and potentially faster reads if your data is compressible,
+  e.g. text.
+
 ## Development
 
 - Install dev dependencies: `pip install -e ".[dev]"`
