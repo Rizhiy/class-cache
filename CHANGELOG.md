@@ -2,6 +2,27 @@
 
 
 
+## v0.6.1 (2024-06-03)
+
+### Chore
+
+* chore: remove wrong comment ([`c120521`](https://github.com/Rizhiy/class-cache/commit/c1205210976003ed0b3e7aa5ef1ef75a511f3065))
+
+* chore(benchmark): add results ([`2db93f3`](https://github.com/Rizhiy/class-cache/commit/2db93f301bdaf517e8712cf9863def6661308e8c))
+
+### Documentation
+
+* docs(README): add example of using Brotli wrapper ([`bb31482`](https://github.com/Rizhiy/class-cache/commit/bb3148217a00de6612895006d2a4c1b90d5d3d45))
+
+### Fix
+
+* fix(backend): commit after setting an item in sqlitebackend ([`55ed493`](https://github.com/Rizhiy/class-cache/commit/55ed493380d29bbef4512985ffe77d6425ffa88f))
+
+### Refactor
+
+* refactor(backends): change SQLiteBackend to use connection directly ([`bbd4e92`](https://github.com/Rizhiy/class-cache/commit/bbd4e9276471e4818d4b812e568edc4e7649ce7d))
+
+
 ## v0.6.0 (2024-06-02)
 
 ### Chore
