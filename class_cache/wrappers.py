@@ -104,7 +104,7 @@ class ExpirationWrapper(BaseWrapper[KeyType, ValueType]):
 
     @property
     def _now(self) -> dt.datetime:
-        return dt.datetime.now(dt.UTC)
+        return dt.datetime.now(dt.timezone.utc)
 
     def _check_item(self, key: KeyType) -> bool:
         expiration_time, _ = self.wrapped[key]
