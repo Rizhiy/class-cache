@@ -2,6 +2,17 @@
 
 
 
+## v0.7.0 (2024-06-04)
+
+### Feature
+
+* feat(wrappers): add expiration wrapper ([`0f3483f`](https://github.com/Rizhiy/class-cache/commit/0f3483f74cf78fb2caf62518c75df224a8668c59))
+
+### Fix
+
+* fix(wrapper): fix utc setting for python 3.10 ([`0c95282`](https://github.com/Rizhiy/class-cache/commit/0c952828960883b4aa64870391503e3d98d10cef))
+
+
 ## v0.6.1 (2024-06-03)
 
 ### Chore
