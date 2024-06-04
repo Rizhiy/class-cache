@@ -1,3 +1,4 @@
+import datetime as dt
 import pickle  # noqa: S403
 from typing import Iterable, Iterator
 
@@ -21,7 +22,7 @@ class BaseWrapper(CacheInterface[KeyType, ValueType]):
         return f"{self.__class__.__name__}({self.wrapped.id})"
 
     @property
-    def wrapped(self) -> CacheInterface:
+    def wrapped(self) -> CacheInterface[KeyType, ValueType]:
         return self._wrapped
 
     @property
@@ -82,3 +83,53 @@ class BrotliCompressWrapper(BaseWrapper[KeyType, ValueType]):
 
     def set_many(self, items: Iterable[tuple[KeyType, ValueType]]) -> None:
         return super().set_many((key, self._encode(value)) for key, value in items)  # type: ignore
+
+
+class ExpirationWrapper(BaseWrapper[KeyType, ValueType]):
+    def __init__(
+        self,
+        wrapped: CacheInterface[KeyType, tuple[dt.datetime, ValueType]],
+        lifespan=dt.timedelta(days=1),
+    ) -> None:
+        super().__init__(wrapped)  # type: ignore
+        self._lifespan = lifespan
+
+    @property
+    def wrapped(self) -> CacheInterface[KeyType, tuple[dt.datetime, ValueType]]:
+        return self._wrapped  # type: ignore
+
+    @property
+    def lifespan(self) -> dt.timedelta:
+        return self._lifespan
+
+    @property
+    def _now(self) -> dt.datetime:
+        return dt.datetime.now(dt.UTC)
+
+    def _check_item(self, key: KeyType) -> bool:
+        expiration_time, _ = self.wrapped[key]
+        if expiration_time < self._now:
+            del self.wrapped[key]
+            return False
+        return True
+
+    def __len__(self) -> int:
+        # TODO: This is very inefficient.
+        # Need to store expiration_time in a separate cache, but will need a way to clone cache for that.
+        return sum(int(self._check_item(key)) for key in self.wrapped)  # type: ignore
+
+    def __iter__(self) -> Iterable[KeyType]:
+        for key in self.wrapped:  # type: ignore
+            if self._check_item(key):
+                yield key
+
+    def __setitem__(self, key: KeyType, value: ValueType) -> None:
+        self.wrapped[key] = self._now + self.lifespan, value
+
+    def __getitem__(self, key: KeyType) -> ValueType:
+        if self._check_item(key):
+            return self.wrapped[key][1]
+        raise KeyError(key)
+
+    def __contains__(self, key: KeyType) -> bool:
+        return super().__contains__(key) and self._check_item(key)
