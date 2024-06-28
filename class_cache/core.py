@@ -3,14 +3,14 @@ from typing import Any, ClassVar, Iterable
 
 from replete.consistent_hash import consistent_hash
 
-from class_cache.backends import BaseBackend, PickleBackend
+from class_cache.backends import PickleBackend
 from class_cache.types import CacheInterface, KeyType, ValueType
 
 DEFAULT_BACKEND_TYPE = PickleBackend
 
 
 class Cache(CacheInterface[KeyType, ValueType]):
-    def __init__(self, id_: str | int | None = None, backend_type: type[BaseBackend] = DEFAULT_BACKEND_TYPE) -> None:
+    def __init__(self, id_: str | int | None = None, backend_type: type[CacheInterface] = DEFAULT_BACKEND_TYPE) -> None:
         super().__init__(id_)
         self._backend = backend_type(id_)
         # TODO: Implement max_size logic
@@ -19,7 +19,7 @@ class Cache(CacheInterface[KeyType, ValueType]):
         self._to_delete = set()
 
     @property
-    def backend(self) -> BaseBackend:
+    def backend(self) -> CacheInterface:
         return self._backend
 
     def __contains__(self, key: KeyType) -> bool:
@@ -71,7 +71,7 @@ class CacheWithDefault(Cache[KeyType, ValueType]):
         {"_backend", "_backend_set", "_data", "_to_write", "_to_delete"},
     )
 
-    def __init__(self, backend: type[BaseBackend] = DEFAULT_BACKEND_TYPE):
+    def __init__(self, backend: type[CacheInterface] = DEFAULT_BACKEND_TYPE):
         super().__init__(self.id_for_backend, backend)
         self._backend_set = True
 

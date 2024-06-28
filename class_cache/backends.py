@@ -18,11 +18,7 @@ from class_cache.utils import get_class_cache_dir
 LOGGER = logging.getLogger(__name__)
 
 
-class BaseBackend(CacheInterface[KeyType, ValueType]):
-    pass
-
-
-class PickleBackend(BaseBackend[KeyType, ValueType]):
+class PickleBackend(CacheInterface[KeyType, ValueType]):
     ROOT_DIR = get_class_cache_dir() / "PickleBackend"
     BLOCK_SUFFIX = ".block.pkl"
     META_TYPE = dict[str, Any]
@@ -163,7 +159,7 @@ class PickleBackend(BaseBackend[KeyType, ValueType]):
             self._write_clean_meta()
 
 
-class SQLiteBackend(BaseBackend[KeyType, ValueType]):
+class SQLiteBackend(CacheInterface[KeyType, ValueType]):
     ROOT_DIR = get_class_cache_dir() / "SQLiteBackend"
     ROOT_DIR.mkdir(parents=True, exist_ok=True)
     DATA_TABLE_NAME = "data"

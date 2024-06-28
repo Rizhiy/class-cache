@@ -3,13 +3,14 @@ from concurrent import futures
 
 import pytest
 
-from class_cache.backends import BaseBackend, PickleBackend, SQLiteBackend
+from class_cache.backends import PickleBackend, SQLiteBackend
+from class_cache.types import CacheInterface
 
 MAX_WORKERS = 16
 INCREASE_AMOUNT = 32
 
 
-def _increase_cache(backend_type: type[BaseBackend], offset: int):
+def _increase_cache(backend_type: type[CacheInterface], offset: int):
     backend = backend_type()
     for idx in range(INCREASE_AMOUNT):
         num = offset + idx
@@ -18,7 +19,7 @@ def _increase_cache(backend_type: type[BaseBackend], offset: int):
 
 @pytest.mark.parametrize(("backend_type"), [PickleBackend, SQLiteBackend])
 class TestCore:
-    def test_basic(self, test_id, test_key, test_value, backend_type: type[BaseBackend]):
+    def test_basic(self, test_id, test_key, test_value, backend_type: type[CacheInterface]):
         backend = backend_type(test_id)
         backend.clear()
         assert test_key not in backend
@@ -30,7 +31,7 @@ class TestCore:
         del backend[test_key]
         assert test_key not in backend
 
-    def test_write_read(self, test_id, test_key, test_value, backend_type: type[BaseBackend]):
+    def test_write_read(self, test_id, test_key, test_value, backend_type: type[CacheInterface]):
         write_backend = backend_type(test_id)
         write_backend.clear()
         assert test_key not in write_backend
