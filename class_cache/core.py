@@ -1,16 +1,20 @@
 from abc import abstractmethod
-from typing import Any, ClassVar, Iterable
+from typing import Any, Callable, ClassVar, Iterable
 
 from replete.consistent_hash import consistent_hash
 
-from class_cache.backends import PickleBackend
-from class_cache.types import CacheInterface, KeyType, ValueType
+from class_cache.backends import SQLiteBackend
+from class_cache.types import CacheInterface, IdType, KeyType, ValueType
 
-DEFAULT_BACKEND_TYPE = PickleBackend
+DEFAULT_BACKEND_TYPE = SQLiteBackend
 
 
 class Cache(CacheInterface[KeyType, ValueType]):
-    def __init__(self, id_: str | int | None = None, backend_type: type[CacheInterface] = DEFAULT_BACKEND_TYPE) -> None:
+    def __init__(
+        self,
+        id_: IdType = None,
+        backend_type: type[CacheInterface] | Callable[[IdType], CacheInterface] = DEFAULT_BACKEND_TYPE,
+    ) -> None:
         super().__init__(id_)
         self._backend = backend_type(id_)
         # TODO: Implement max_size logic
