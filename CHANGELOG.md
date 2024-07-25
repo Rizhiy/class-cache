@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.8.0 (2024-07-25)
+
+### Feature
+
+* feat(lru_queue): add LRUQueue ([`520f470`](https://github.com/Rizhiy/class-cache/commit/520f470efc12dc6c3453edcec155205d0a20784e))
+
+### Test
+
+* test: fix iterator call ([`29f2c0f`](https://github.com/Rizhiy/class-cache/commit/29f2c0f75de2e421dc7a8f1589418469973016e5))
+
 ## v0.7.1 (2024-07-22)
 
 ### Fix
