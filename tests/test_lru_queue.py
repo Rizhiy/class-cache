@@ -32,7 +32,7 @@ def test_basic_queue():
 
 def test_next():
     queue = get_queue()
-    assert next(queue) == 3  # type: ignore FP
+    assert next(iter(queue)) == 3
 
 
 def test_str():
