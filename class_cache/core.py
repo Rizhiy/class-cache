@@ -14,6 +14,7 @@ class Cache(CacheInterface[KeyType, ValueType]):
         self,
         id_: IdType = None,
         backend_type: type[CacheInterface] | Callable[[IdType], CacheInterface] = DEFAULT_BACKEND_TYPE,
+        max_items=128,
     ) -> None:
         super().__init__(id_)
         self._backend = backend_type(id_)
@@ -21,6 +22,7 @@ class Cache(CacheInterface[KeyType, ValueType]):
         self._data: dict[KeyType, ValueType] = {}
         self._to_write = set()
         self._to_delete = set()
+        self._max_items = max_items
 
     @property
     def backend(self) -> CacheInterface:

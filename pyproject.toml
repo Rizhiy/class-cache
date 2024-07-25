@@ -15,7 +15,7 @@ dependencies = ["Pympler", "brotli", "marisa-trie", "replete>=2.3.1"]
 Home = "https://github.com/Rizhiy/class-cache"
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "replete[testing]"]
+test = ["flaky", "pytest", "pytest-cov", "replete[testing]"]
 dev = ["black", "class-cache[test]", "numpy", "pre-commit", "ruff"]
 
 [tool.flit.sdist]
@@ -27,7 +27,7 @@ version_variables = ["class_cache/__init__.py:__version__"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--doctest-modules --ignore=benchmark"
+addopts = "--doctest-modules --ignore=benchmark --no-flaky-report"
 
 [tool.black]
 line-length = 120
