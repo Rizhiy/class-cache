@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.9.0 (2024-07-26)
+
+### Feature
+
+* feat(lru_queue): add pop_many and refactor ([`d05f82d`](https://github.com/Rizhiy/class-cache/commit/d05f82d09a486bc70ed4752e6c34066dc7c4f6aa))
+
 ## v0.8.0 (2024-07-25)
 
 ### Feature
