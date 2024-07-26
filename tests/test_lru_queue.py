@@ -1,3 +1,4 @@
+import pytest
 from flaky import flaky
 from replete import Timer
 
@@ -74,3 +75,17 @@ def test_pop_update_speed():
 
     # Some noise is allowed
     assert timer.base_time_ratio < 1.05
+
+
+def test_empty_pop_raises_error():
+    queue = LRUQueue()
+    with pytest.raises(IndexError, match="empty queue"):
+        queue.pop()
+
+
+def test_pop_many():
+    small_queue = get_queue()
+
+    assert small_queue.pop_many(3) == [0, 1, 2]
+    assert small_queue.pop_many(2) == [3]
+    assert small_queue.pop_many(1) == []
