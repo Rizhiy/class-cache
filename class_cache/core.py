@@ -75,6 +75,8 @@ class Cache(CacheInterface[KeyType, ValueType]):
         if key in self._data:
             del self._lru_queue[key]
         self._data.pop(key, None)
+        if key in self._to_write:
+            self._to_write.remove(key)
         self._to_delete.add(key)
 
     def write(self) -> None:

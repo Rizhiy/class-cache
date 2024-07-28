@@ -24,6 +24,15 @@ def get_new_cache(id_: str = None, *, clear=True, **kwargs) -> Cache:
     return cache
 
 
+def get_cache_with_items(*args, **kwargs) -> tuple[Cache, dict[int, str]]:
+    cache = get_new_cache(*args, **kwargs)
+
+    items = {i: str(i) for i in range(16)}
+
+    cache.set_many(items.items())
+    return cache, items
+
+
 def test_basic_cache(test_key, test_value):
     first = get_new_cache()
     first[test_key] = test_value
@@ -140,6 +149,51 @@ def test_max_memory_usage():
         cache[idx] = get_random_array()
     end_max_memory_usage = get_max_memory_used()
     assert end_max_memory_usage - starting_max_memory < 3_000
+
+
+def test_equals():
+    cache = get_new_cache()
+    cache2 = get_new_cache(max_items=64)
+    assert cache == cache2
+
+    cache3 = get_new_cache("Another")
+    assert cache != cache3
+
+
+def test_contains_many():
+    cache, items = get_cache_with_items()
+
+    keys = tuple(items.keys())
+    in_keys, ins = zip(*cache.contains_many(keys))
+
+    assert in_keys == keys
+    assert all(ins)
+
+
+def test_get_many():
+    cache, items = get_cache_with_items()
+
+    keys = tuple(items.keys())
+    in_keys, values = zip(*cache.get_many(keys))
+
+    assert in_keys == keys
+    assert values == tuple(items.values())
+
+
+def test_set_many():
+    cache, items = get_cache_with_items()
+
+    for key, value in items.items():
+        assert value == cache[key]
+
+
+def test_del_many():
+    cache, items = get_cache_with_items()
+
+    keys = tuple(items.keys())
+    cache.del_many(keys)
+
+    assert len(cache) == 0
 
 
 # TODO: Add parallel test for cache as well (threading)
