@@ -89,3 +89,10 @@ def test_pop_many():
     assert small_queue.pop_many(3) == [0, 1, 2]
     assert small_queue.pop_many(2) == [3]
     assert small_queue.pop_many(1) == []
+
+
+def test_clear():
+    small_queue = get_queue()
+
+    small_queue.clear()
+    assert len(small_queue) == 0

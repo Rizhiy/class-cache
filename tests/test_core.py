@@ -1,3 +1,7 @@
+import resource
+
+import numpy as np
+
 from class_cache import Cache, CacheWithDefault
 
 TEST_DICT = {1: "foo", "foo": "bar", (2, 3): [4, 5]}
@@ -14,8 +18,8 @@ class CacheWithAttr(CacheWithDefault[str, str]):
         return self._name + key
 
 
-def get_new_cache(id_: str = None, *, clear=True) -> Cache:
-    cache = Cache(id_)
+def get_new_cache(id_: str = None, *, clear=True, **kwargs) -> Cache:
+    cache = Cache(id_, **kwargs)
     if clear:
         cache.clear()
     return cache
@@ -118,3 +122,26 @@ def test_len():
     del cache
     cache = get_new_cache(clear=False)
     assert len(cache) == len(TEST_DICT)
+
+
+def get_max_memory_used() -> int:
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+
+def get_random_array(rng: np.random.Generator) -> np.ndarray:
+    return rng.uniform(size=1024)
+
+
+def test_max_memory_usage():
+    cache = get_new_cache(max_items=16)
+    rng = np.random.default_rng()
+    # Get an array to account for generation in memory calculation
+    _ = get_random_array(rng)
+    starting_max_memory = get_max_memory_used()
+    for idx in range(1024):
+        cache[idx] = get_random_array(rng)
+    end_max_memory_usage = get_max_memory_used()
+    assert end_max_memory_usage - starting_max_memory < 1_000
+
+
+# TODO: Add parallel test for cache as well (threading)

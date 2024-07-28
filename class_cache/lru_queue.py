@@ -92,7 +92,7 @@ class LRUQueue(Generic[KeyType]):
         return last.key
 
     def pop_many(self, count: int) -> list[KeyType]:
-        if self._check_empty(no_raise=True):
+        if count == 0 or self._check_empty(no_raise=True):
             return []
 
         first = self._root.prev
@@ -127,6 +127,11 @@ class LRUQueue(Generic[KeyType]):
         for key in self:
             result += f"{key} -> "
         return result[:-4]
+
+    def clear(self) -> None:
+        if self._root.next == self._root:
+            return
+        self._cut(self._root.next, self._root)
 
 
 __all__ = ["LRUQueue"]

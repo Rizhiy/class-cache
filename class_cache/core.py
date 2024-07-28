@@ -1,28 +1,41 @@
+import math
 from abc import abstractmethod
 from typing import Any, Callable, ClassVar, Iterable
 
 from replete.consistent_hash import consistent_hash
 
 from class_cache.backends import SQLiteBackend
+from class_cache.lru_queue import LRUQueue
 from class_cache.types import CacheInterface, IdType, KeyType, ValueType
 
 DEFAULT_BACKEND_TYPE = SQLiteBackend
 
 
 class Cache(CacheInterface[KeyType, ValueType]):
+    """
+    :param max_items: Maximum number of items to keep in memory
+    :param flush_ratio: Amount of stored items to write to backend when memory if full
+        ceiling will be used to calculate the final amount
+    """
+
     def __init__(
         self,
         id_: IdType = None,
         backend_type: type[CacheInterface] | Callable[[IdType], CacheInterface] = DEFAULT_BACKEND_TYPE,
         max_items=128,
+        *,
+        flush_ratio=0.1,
     ) -> None:
         super().__init__(id_)
         self._backend = backend_type(id_)
-        # TODO: Implement max_size logic
+
+        self._max_items = max_items
+        self._flush_amount = math.ceil(self._max_items * flush_ratio)
+        self._lru_queue = LRUQueue()
+
         self._data: dict[KeyType, ValueType] = {}
         self._to_write = set()
         self._to_delete = set()
-        self._max_items = max_items
 
     @property
     def backend(self) -> CacheInterface:
@@ -30,16 +43,21 @@ class Cache(CacheInterface[KeyType, ValueType]):
 
     def __contains__(self, key: KeyType) -> bool:
         if key in self._data:
+            self._lru_queue.update(key)
             return True
         return key not in self._to_delete and key in self._backend
 
     def __setitem__(self, key: KeyType, value: ValueType) -> None:
         self._data[key] = value
         self._to_write.add(key)
+        self._lru_queue.update(key)
+        self._check_max_items()
 
     def __getitem__(self, key: KeyType) -> ValueType:
         if key not in self._data:
             self._data[key] = self._backend[key]
+            self._check_max_items()
+        self._lru_queue.update(key)
         return self._data[key]
 
     def __iter__(self) -> Iterable[KeyType]:
@@ -54,6 +72,8 @@ class Cache(CacheInterface[KeyType, ValueType]):
         # Check that key is present. Can't check self._data, since it can be unloaded
         if key not in self:
             raise KeyError(key)
+        if key in self._data:
+            del self._lru_queue[key]
         self._data.pop(key, None)
         self._to_delete.add(key)
 
@@ -69,8 +89,20 @@ class Cache(CacheInterface[KeyType, ValueType]):
         self._data = {}
         self._to_write = set()
         self._to_delete = set()
+        self._lru_queue.clear()
+
+    def _check_max_items(self) -> None:
+        if len(self._data) <= self._max_items:
+            return
+
+        keys_to_free = self._lru_queue.pop_many(self._flush_amount)
+        if any(key in self._to_write for key in keys_to_free):
+            self.write()
+        for key in keys_to_free:
+            self._data.pop(key)
 
 
+# TODO: Refactor this, this should use composition, not inheritance. Maybe a wrapper.
 class CacheWithDefault(Cache[KeyType, ValueType]):
     VERSION = 0
     NON_HASH_ATTRIBUTES: ClassVar[frozenset[str]] = frozenset(
