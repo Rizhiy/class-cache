@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.10.0 (2024-07-28)
+
+### Feature
+
+* feat(core): add max_items functionality, so memory usage is decreased ([`337727b`](https://github.com/Rizhiy/class-cache/commit/337727bd990cc55d2d98a6149715d85326daef3c))
+
+### Test
+
+* test(test_core): use plain random instead of numpy ([`ec4049f`](https://github.com/Rizhiy/class-cache/commit/ec4049fbca3ab19ebb0a8497786eaa8d2a4b208d))
+
 ## v0.9.0 (2024-07-26)
 
 ### Feature
