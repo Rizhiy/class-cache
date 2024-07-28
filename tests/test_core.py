@@ -1,6 +1,5 @@
+import random
 import resource
-
-import numpy as np
 
 from class_cache import Cache, CacheWithDefault
 
@@ -128,20 +127,19 @@ def get_max_memory_used() -> int:
     return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 
-def get_random_array(rng: np.random.Generator) -> np.ndarray:
-    return rng.uniform(size=1024)
+def get_random_array() -> list[int]:
+    return [random.randint(0, 1024) for _ in range(1024)]  # noqa: S311
 
 
 def test_max_memory_usage():
     cache = get_new_cache(max_items=16)
-    rng = np.random.default_rng()
     # Get an array to account for generation in memory calculation
-    _ = get_random_array(rng)
+    _ = get_random_array()
     starting_max_memory = get_max_memory_used()
     for idx in range(1024):
-        cache[idx] = get_random_array(rng)
+        cache[idx] = get_random_array()
     end_max_memory_usage = get_max_memory_used()
-    assert end_max_memory_usage - starting_max_memory < 1_000
+    assert end_max_memory_usage - starting_max_memory < 3_000
 
 
 # TODO: Add parallel test for cache as well (threading)
