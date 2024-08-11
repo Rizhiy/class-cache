@@ -20,7 +20,7 @@ dev = ["black", "class-cache[test]", "isort", "numpy", "pre-commit", "ruff"]
 
 [tool.flit.sdist]
 include = ["README.md"]
-exclude = [".github", ".gitignore", "benchmark", "tests/*"]
+exclude = [".github", ".gitignore", "benchmark", "tests"]
 
 [tool.semantic_release]
 version_variables = ["class_cache/__init__.py:__version__"]
