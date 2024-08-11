@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## v0.10.1 (2024-08-11)
+
+### Chore
+
+* chore: update ruff version in pre-commit ([`82d2f0d`](https://github.com/Rizhiy/class-cache/commit/82d2f0dbb2dadca0d3f656e31ea6d96a05a4d6cb))
+
+* chore: update exclude for flit ([`926f021`](https://github.com/Rizhiy/class-cache/commit/926f0218c74ac91c9adfde10e834a7a2633deb95))
+
+* chore: add isort to dev deps ([`75996e0`](https://github.com/Rizhiy/class-cache/commit/75996e0e27be300522d63494b965c0713b3f2729))
+
+* chore(types): remove two unused types ([`11d6024`](https://github.com/Rizhiy/class-cache/commit/11d602469ca42890fc4b634329988d09eba20540))
+
+### Ci
+
+* ci: disable B905 ([`3442912`](https://github.com/Rizhiy/class-cache/commit/34429126c7fd245c831192e725629e5f8389a767))
+
+* ci: disable A005 ([`8f922cc`](https://github.com/Rizhiy/class-cache/commit/8f922cc182165cedd17379282f3039f79da8d2f7))
+
+### Fix
+
+* fix: update min python version ([`9534e4b`](https://github.com/Rizhiy/class-cache/commit/9534e4b2fefc326b16226c8e8b392ca9f50017bb))
+
+### Test
+
+* test(test_core): add tests for many* methods ([`53cc4d8`](https://github.com/Rizhiy/class-cache/commit/53cc4d8e8360e1108dd98a2f77e3d15d7d6e7e18))
+
 ## v0.10.0 (2024-07-28)
 
 ### Feature
